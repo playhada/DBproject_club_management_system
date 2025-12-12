@@ -243,3 +243,51 @@ def test_rollback():
         return f"오류: {e}"
     conn.close()
     return "테스트 완료"
+
+
+def add_club_activity(club_id, name, date, location, attendee_count, amount, desc):
+    """동아리 활동 등록 + 출석 인원 랜덤 배정 + 지출 내역 기록 (트랜잭션)"""
+    conn = get_conn()
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute("INSERT INTO Activity (club_id, activity_name, activity_date, location, description) VALUES (?, ?, ?, ?, ?)",
+                       (club_id, name, date, location, '운영진 등록'))
+        act_id = cursor.lastrowid
+        
+        cursor.execute("SELECT student_id FROM Membership WHERE club_id = ?", (club_id,))
+        members = [row[0] for row in cursor.fetchall()]
+        
+        if len(members) < int(attendee_count):
+            raise ValueError(f"멤버 수({len(members)}명)보다 참석자 수({attendee_count}명)가 많을 수 없습니다.")
+            
+        if members and int(attendee_count) > 0:
+            attendees = random.sample(members, int(attendee_count))
+            for s_id in attendees:
+                cursor.execute("INSERT INTO Attendance (student_id, activity_id) VALUES (?, ?)", (s_id, act_id))
+
+        if int(amount) > 0:
+            cursor.execute("SELECT budget_id, total_amount FROM Budget WHERE club_id = ? ORDER BY budget_id DESC LIMIT 1", (club_id,))
+            res = cursor.fetchone()
+            if not res:
+                raise ValueError("배정된 예산이 없습니다.")
+            
+            budget_id, total_budget = res
+            
+            cursor.execute("SELECT IFNULL(SUM(amount), 0) FROM Expense WHERE budget_id = ?", (budget_id,))
+            used_amount = cursor.fetchone()[0]
+            
+            if (total_budget - used_amount - int(amount)) < 0:
+                raise ValueError(f"예산 초과, 잔액이 부족합니다. (신청: {amount}원)")
+              
+            cursor.execute("INSERT INTO Expense (budget_id, activity_id, category_id, amount, description, expense_date) VALUES (?, ?, 1, ?, ?, ?)",
+                           (budget_id, act_id, int(amount), desc, date))
+
+        conn.commit()
+        return True, "활동 및 지출 등록 성공"
+        
+    except Exception as e:
+        conn.rollback()
+        return False, f"등록 실패: {e}"
+    finally:
+        conn.close()

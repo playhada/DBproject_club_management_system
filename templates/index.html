@@ -12,12 +12,12 @@
     <style>
         body {
             font-family: 'Noto Sans KR', sans-serif;
-            background-color: #f4f6f9; /* 아주 연한 회색 배경 */
+            background-color: #f4f6f9; 
             color: #333;
         }
-        /* 상단 네비게이션 바 스타일 */
+        
         .navbar-custom {
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); /* 짙은 남색 그라데이션 */
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); 
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
         .navbar-brand {
@@ -25,7 +25,7 @@
             font-size: 1.5rem;
             letter-spacing: -0.5px;
         }
-        /* 카드 스타일 업그레이드 */
+        
         .card {
             border: none;
             border-radius: 12px;
@@ -33,7 +33,7 @@
             transition: all 0.3s ease;
         }
         .card:hover {
-            box-shadow: 0 10px 15px rgba(0,0,0,0.05); /* 마우스 올리면 살짝 뜸 */
+            box-shadow: 0 10px 15px rgba(0,0,0,0.05); 
         }
         .card-header {
             background-color: white;
@@ -42,13 +42,13 @@
             padding: 15px 20px;
             border-radius: 12px 12px 0 0 !important;
         }
-        /* 버튼 스타일 */
+        
         .btn {
             border-radius: 8px;
             font-weight: 500;
             padding: 8px 16px;
         }
-        /* 테이블 스타일 */
+        
         .table thead th {
             background-color: #f8f9fa;
             border-bottom: 2px solid #e9ecef;
@@ -154,6 +154,46 @@
                     </div>
                 </div>
             </div>
+            <div class="card shadow-sm border-warning mt-3">
+    <div class="card-header bg-warning text-dark fw-bold">
+        <i class="fa-solid fa-flag me-1"></i> 동아리 활동/지출 등록
+    </div>
+    <div class="card-body">
+        <form action="/club/activity/add" method="post">
+            <select name="c_id" class="form-select mb-2 form-select-sm" required>
+                <option value="" disabled selected>운영할 동아리 선택</option>
+                {% for club in clubs %}
+                <option value="{{ club.club_id }}">{{ club.club_name }}</option>
+                {% endfor %}
+            </select>
+            
+            <div class="input-group mb-2">
+                <span class="input-group-text"><i class="fa-regular fa-calendar-check"></i></span>
+                <input type="text" name="act_name" class="form-control form-control-sm" placeholder="활동명 (예: 정기회식)" required>
+            </div>
+            
+            <div class="row g-2 mb-2">
+                <div class="col-6">
+                    <input type="date" name="act_date" class="form-control form-control-sm" required>
+                </div>
+                <div class="col-6">
+                    <input type="text" name="location" class="form-control form-control-sm" placeholder="장소" required>
+                </div>
+            </div>
+
+            <div class="input-group mb-2">
+                <span class="input-group-text small">참석</span>
+                <input type="number" name="attendee_cnt" class="form-control form-control-sm" placeholder="인원(명)" min="0" required>
+                <span class="input-group-text small">지출</span>
+                <input type="number" name="amount" class="form-control form-control-sm" placeholder="금액(원)" min="0" value="0">
+            </div>
+            
+            <input name="desc" class="form-control form-control-sm mb-2" placeholder="지출 상세 내용 (예: 식대 결제)">
+            
+            <button class="btn btn-warning w-100 btn-sm fw-bold">등록 및 정산</button>
+        </form>
+    </div>
+</div>
 
             <div class="col-md-8">
                 
