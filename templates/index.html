@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <title>DG Univ. Club Admin</title>
+    
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f4f6f9; /* 아주 연한 회색 배경 */
+            color: #333;
+        }
+        /* 상단 네비게이션 바 스타일 */
+        .navbar-custom {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); /* 짙은 남색 그라데이션 */
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            letter-spacing: -0.5px;
+        }
+        /* 카드 스타일 업그레이드 */
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            box-shadow: 0 10px 15px rgba(0,0,0,0.05); /* 마우스 올리면 살짝 뜸 */
+        }
+        .card-header {
+            background-color: white;
+            border-bottom: 1px solid #eee;
+            font-weight: 600;
+            padding: 15px 20px;
+            border-radius: 12px 12px 0 0 !important;
+        }
+        /* 버튼 스타일 */
+        .btn {
+            border-radius: 8px;
+            font-weight: 500;
+            padding: 8px 16px;
+        }
+        /* 테이블 스타일 */
+        .table thead th {
+            background-color: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+            color: #495057;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fa-solid fa-graduation-cap me-2"></i>
+                동국대학교 단체 관리 시스템
+            </a>
+            <div class="text-white opacity-75">
+                <small><i class="fa-solid fa-user-gear me-1"></i> 관리자 모드</small>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm" role="alert">
+                        {% if category == 'success' %}
+                            <i class="fa-solid fa-circle-check me-2"></i>
+                        {% elif category == 'danger' %}
+                            <i class="fa-solid fa-circle-exclamation me-2"></i>
+                        {% else %}
+                            <i class="fa-solid fa-circle-info me-2"></i>
+                        {% endif %}
+                        <strong>{{ message }}</strong>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="row g-4">
+            <div class="col-md-4">
+                
+                <div class="card mb-3">
+                    <div class="card-header text-primary">
+                        <i class="fa-solid fa-sliders me-1"></i> 시스템 제어
+                    </div>
+                    <div class="card-body">
+                        <form action="/init" method="post" class="mb-2">
+                            <button class="btn btn-outline-danger w-100">
+                                <i class="fa-solid fa-rotate-right me-1"></i> 초기화 및 데이터 생성
+                            </button>
+                        </form>
+                        <form action="/test/rollback" method="post">
+                            <button class="btn btn-dark w-100">
+                                <i class="fa-solid fa-shield-halved me-1"></i> 트랜잭션 롤백 테스트
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-header text-success">
+                        <i class="fa-solid fa-user-plus me-1"></i> 학생 관리
+                    </div>
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-3 text-muted small fw-bold">신규 학생 등록</h6>
+                        <form action="/student/add" method="post" class="mb-4">
+                            <input name="s_id" class="form-control mb-2" placeholder="학번" required>
+                            <input name="name" class="form-control mb-2" placeholder="이름" required>
+                            <input name="dept" class="form-control mb-2" placeholder="학과" required>
+                            <input name="phone" class="form-control mb-2" placeholder="연락처" required>
+                            <button class="btn btn-success w-100">등록하기</button>
+                        </form>
+                        
+                        <div class="border-top pt-3">
+                            <h6 class="card-subtitle mb-2 text-muted small fw-bold">학생 제적 처리</h6>
+                            <form action="/student/delete" method="post" class="d-flex gap-2">
+                                <input name="s_id" class="form-control" placeholder="학번 입력" required>
+                                <button class="btn btn-secondary">삭제</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header text-info">
+                        <i class="fa-solid fa-handshake me-1"></i> 동아리 가입 (M:N)
+                    </div>
+                    <div class="card-body">
+                        <form action="/club/join" method="post">
+                            <input name="s_id" class="form-control mb-2" placeholder="학번 입력" required>
+                            <select name="c_id" class="form-select mb-2">
+                                <option value="" disabled selected>가입할 동아리 선택</option>
+                                {% for club in clubs %}
+                                <option value="{{ club.club_id }}">{{ club.club_name }}</option>
+                                {% endfor %}
+                            </select>
+                            <button class="btn btn-info text-white w-100 fw-bold">가입 처리</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-8">
+                
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="fa-solid fa-list me-1"></i> 등록된 동아리 목록</span>
+                        <span class="badge bg-secondary rounded-pill">{{ clubs|length }}개</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="ps-4">동아리명</th>
+                                    <th>설명</th>
+                                    <th class="text-center" style="width: 120px;">기능</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for club in clubs %}
+                                <tr>
+                                    <td class="ps-4 fw-bold text-primary">{{ club.club_name }}</td>
+                                    <td class="text-muted small">{{ club.description }}</td>
+                                    <td class="text-center">
+                                        <a href="/club/{{ club.club_id }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                            상세보기
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {% if detail_data %}
+                <div class="card mb-4 border border-2 border-primary">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <span class="fw-bold"><i class="fa-solid fa-circle-info me-2"></i>{{ detail_data.info.club_name }} 상세 정보</span>
+                        <a href="/" class="btn btn-sm btn-light text-primary fw-bold"><i class="fa-solid fa-xmark me-1"></i>닫기</a>
+                    </div>
+                    <div class="card-body bg-light">
+                        <div class="d-flex align-items-center bg-white p-3 rounded shadow-sm mb-3">
+                            <div class="bg-warning bg-opacity-10 p-3 rounded-circle me-3 text-warning">
+                                <i class="fa-solid fa-crown fa-2x"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-uppercase text-muted small fw-bold mb-1">President</h6>
+                                <h5 class="fw-bold mb-0">{{ detail_data.info.president_name }}</h5>
+                                <small class="text-muted">{{ detail_data.info.president_dept }} | {{ detail_data.info.president_phone }}</small>
+                            </div>
+                        </div>
+
+                        <h6 class="fw-bold mb-2 ps-1"><i class="fa-solid fa-users me-1"></i> 전체 구성원 ({{ detail_data.members|length }}명)</h6>
+                        <div class="table-responsive bg-white rounded border" style="max-height: 300px; overflow-y: auto;">
+                            <table class="table table-sm table-hover mb-0">
+                                <thead class="table-light sticky-top">
+                                    <tr><th>직책</th><th>이름</th><th>학번</th><th>학과</th><th>연락처</th></tr>
+                                </thead>
+                                <tbody>
+                                    {% for m in detail_data.members %}
+                                    <tr class="{{ 'table-warning fw-bold' if m.role == '회장' else '' }}">
+                                        <td>
+                                            {% if m.role == '회장' %} <i class="fa-solid fa-crown text-warning me-1"></i> {% endif %}
+                                            {{ m.role }}
+                                        </td>
+                                        <td>{{ m.name }}</td>
+                                        <td>{{ m.student_id }}</td>
+                                        <td>{{ m.department }}</td>
+                                        <td>{{ m.phone }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fa-solid fa-chart-line me-1"></i> 활동 분석 조회
+                    </div>
+                    <div class="card-body">
+                        <form action="/analysis" class="d-flex mb-3 gap-2">
+                            <input name="keyword" class="form-control" placeholder="동아리명 검색 (예: 코딩)" value="{{ keyword }}">
+                            <button class="btn btn-dark px-4"><i class="fa-solid fa-magnifying-glass"></i> 조회</button>
+                        </form>
+                        
+                        {% if analysis %}
+                        <div class="table-responsive">
+                            <table class="table table-striped align-middle">
+                                <thead class="table-dark">
+                                    <tr><th>동아리</th><th>활동명</th><th>참석자</th><th>활동비(지출)</th><th>날짜</th></tr>
+                                </thead>
+                                <tbody>
+                                    {% for row in analysis %}
+                                    <tr>
+                                        <td>{{ row.club_name }}</td>
+                                        <td>{{ row.activity_name }}</td>
+                                        <td><span class="badge bg-secondary">{{ row.attendees }}명</span></td>
+                                        <td class="{{ 'text-muted' if row.total_expense == 0 else 'text-primary fw-bold' }}">
+                                            {{ "{:,}".format(row.total_expense) }}원
+                                        </td>
+                                        <td>{{ row.activity_date }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="card border-success border-top-0 border-end-0 border-bottom-0 border-start-4">
+                    <div class="card-header bg-white text-success fw-bold">
+                        <i class="fa-solid fa-sack-dollar me-1"></i> 동아리별 예산 집행 현황
+                    </div>
+                    <div class="card-body">
+                        {% if budget_data %}
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle text-center">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th>동아리</th>
+                                        <th>총 예산</th>
+                                        <th>사용액</th>
+                                        <th>잔액</th>
+                                        <th>집행률</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for row in budget_data %}
+                                    <tr>
+                                        <td class="fw-bold text-start">{{ row.club_name }}</td>
+                                        <td>{{ "{:,}".format(row.total_amount) }}원</td>
+                                        <td class="text-danger">{{ "{:,}".format(row.used_amount) }}원</td>
+                                        <td class="text-primary fw-bold">{{ "{:,}".format(row.balance) }}원</td>
+                                        <td style="width: 20%;">
+                                            <div class="progress" style="height: 20px; border-radius: 10px;">
+                                                <div class="progress-bar bg-{{ 'danger' if row.rate > 90 else 'success' }}" 
+                                                     role="progressbar" 
+                                                     style="width: {{ row.rate }}%;">
+                                                    {{ row.rate }}%
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                            <p class="text-center text-muted py-3">
+                                <i class="fa-regular fa-folder-open fa-2x mb-2 d-block"></i>
+                                예산 데이터가 없습니다. 초기화를 진행해주세요.
+                            </p>
+                        {% endif %}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        
+        <footer class="mt-5 mb-4 text-center text-muted small">
+            <p class="mb-0">&copy; 2025 Univ. Club Management System. Design by <b>Data Science Dept.</b></p>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
